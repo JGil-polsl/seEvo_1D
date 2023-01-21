@@ -1,0 +1,24 @@
+Metadata-Version: 2.1
+Name: seEvo-1D
+Version: 0.0.1
+Summary: Software for simulating slightly effect mutations impact on population evolution in tau leap version.
+Home-page: https://github.com/JGil-polsl/seEvo_1D
+Author: Jaroslaw Gil
+Author-email: jaroslaw.gil@polsl.pl
+Project-URL: Bug Reports, https://github.com/JGil-polsl/seEvo/issues
+Project-URL: Source, https://github.com/JGil-polsl/seEvo
+Keywords: clonal evolution,microbial,numerical modelling
+Classifier: Development Status :: 3 - Alpha
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# seEvo 
+- slightly effect evolution simulator based on Gillespie algorithm
