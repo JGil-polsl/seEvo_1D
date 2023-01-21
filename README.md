@@ -1,17 +1,17 @@
 # Installation
 
 seEvo1D is python based lib available at pypi
-'''
+```
 python -m pip install seEvo1D
-'''
-all dependecies will be installed with program
+```
+dependecies will be installed with program
 
 # Usage
 
 To run program simply type in command line
-'''
+```
 python -m seEvo1D
-'''
+```
 basicly seEvo is standalone program which provides possibility to simulate slighlty effect evolution in one dimension - slightly advantegous, slightly deleterious
 
 # Instructions
