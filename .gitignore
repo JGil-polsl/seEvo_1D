@@ -3,3 +3,4 @@ tests/*
 dist/*
 src/seEvo.*
 src/seEvo/__pycache__/*
+build.bat

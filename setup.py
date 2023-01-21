@@ -21,8 +21,8 @@ setup(
     # There are some restrictions on what makes a valid project name
     # specification here:
     # https://packaging.python.org/specifications/core-metadata/#name
-    name="seEvo_1D", 
-    version="0.0.1",
+    name="seEvo1D", 
+    version="0.0.3",
     description="Software for simulating slightly effect mutations impact on population evolution in tau leap version.",
     url="https://github.com/JGil-polsl/seEvo_1D",
     author="Jaroslaw Gil",  
@@ -72,7 +72,7 @@ setup(
     # executes the function `main` from this package when invoked:
     entry_points={ 
         "console_scripts": [
-            "seEvo=__main__:main",
+            "seEvo1D=__main__:main",
         ],
     },
     # List additional URLs that are relevant to your project as a dict.

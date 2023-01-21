@@ -1,0 +1,2 @@
+[console_scripts]
+seEvo1D = __main__:main

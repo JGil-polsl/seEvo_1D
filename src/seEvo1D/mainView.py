@@ -10,8 +10,8 @@ import re
 from threading import Thread
 from multiprocessing import Process, Queue
 
-from seEvo_1D.seEvo_evolution_init import seEvoInit
-import seEvo_1D.externalPlots as externalPlots
+from seEvo1D.seEvo_evolution_init import seEvoInit
+import seEvo1D.externalPlots as externalPlots
 
 disclaimer = '''
     seEvo - slightly effect evolution simulator basing on Gillespie algorithm.

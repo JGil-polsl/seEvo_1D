@@ -7,8 +7,8 @@ import pandas as pd
 from pathlib import Path  
 from threading import Thread
 
-from seEvo_1D.seEvo_evolution_loop_1D import seEvo1Dnorm
-from seEvo_1D.seEvo_analytical_model_1D import seEvo1Danalytical
+from seEvo1D.seEvo_evolution_loop_1D import seEvo1Dnorm
+from seEvo1D.seEvo_analytical_model_1D import seEvo1Danalytical
 
 end = False
 
