@@ -7,13 +7,20 @@ import pandas as pd
 from pathlib import Path  
 from threading import Thread
 
+# from seEvo_evolution_loop_1D import seEvo1Dnorm
+# from seEvo_analytical_model_1D import seEvo1Danalytical
 from seEvo1D.seEvo_evolution_loop_1D import seEvo1Dnorm
 from seEvo1D.seEvo_analytical_model_1D import seEvo1Danalytical
 
 end = False
 
 def saveToFile(df, file_localization, file_name, iter_outer):    
-    sc.sparse.save_npz(file_localization + "/" + file_name + "_" + str(iter_outer), df)
+    try:
+        os.makedirs(file_localization, exist_ok=True) 
+    except OSError as error:
+        print(error)
+    finally:
+        sc.sparse.save_npz(file_localization + "/" + file_name + "_" + str(iter_outer), df)
 
 def commands(q, ID, iPop, file_localization, file_name, iter_outer, skip, iter_inner, cycle, tau, select):
     global end

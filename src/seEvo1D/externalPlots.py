@@ -23,11 +23,11 @@ def readPaths(file_path):
             name.lstrip('_')
         else:
             out = out + i + '/'
-    out = out + "Figures/" + number + "/"
+    out = out + "Figures/"
     return [file_path, out, name, number]        
     
 def mutationWave(file_path):
-    print(file_path)
+    # print(file_path)
     for x in file_path:
         _in, _out, _name, _num = readPaths(x)
         fig = plt.figure(figsize=(40,20))
@@ -41,9 +41,15 @@ def mutationWave(file_path):
             
         elif 'normal' in _name:                    
             popSize = pop._shape[0]
-            ax.hist(pop[:,1].toarray(), color='red')
+            _min = int(min(pop[:,1].toarray()))
+            _max = int(max(pop[:,1].toarray()))
+            data = np.zeros((int(_max - _min) + 1, 2))
+            data[:,0] = np.array([x for x in range(_min, _max+1, 1)])
+            for i in pop[:,1].toarray():
+                data[int(i) - _min, 1] = data[int(i) - _min, 1] + 1
+            ax.bar(data[:,0], data[:,1], width=1, color='red')
             
-        ax.legend(prop={'size':30})
+        # ax.legend(prop={'size':30})
         
         ax.set_xlabel("Mutation number", labelpad=50, fontdict={'fontsize':50})
         ax.set_ylabel("Cells", labelpad=50, fontdict={'fontsize':50})
@@ -55,13 +61,13 @@ def mutationWave(file_path):
             tick.label.set_fontsize(40) 
         
         try:
-            os.makedirs(_out, exist_ok=True) 
+            os.makedirs(_out + "mutation_wave/", exist_ok=True) 
         except OSError as error:
             print(error)
         finally:
-            if os.path.exists(_out + "%s_mutation_wave.jpg" % _num):
-                os.remove(_out + "%s_mutation_wave.jpg" % _num)
-            fig.savefig(_out + "%s_mutation_wave.jpg" % _num)
+            if os.path.exists(_out + "mutation_wave/%s_mutation_wave.jpg" % _num):
+                os.remove(_out + "mutation_wave/%s_mutation_wave.jpg" % _num)
+            fig.savefig(_out + "mutation_wave/%s_mutation_wave.jpg" % _num)
             plt.close(fig)            
     
 def fitnessWave(file_path):
@@ -80,7 +86,7 @@ def fitnessWave(file_path):
             popSize = pop._shape[0]            
             ax.hist(pop[:,0].toarray(), color='red')
             
-        ax.legend(prop={'size':30})
+        # ax.legend(prop={'size':30})
         
         ax.set_xlabel("Fitness", labelpad=50, fontdict={'fontsize':50})
         ax.set_ylabel("Cells", labelpad=50, fontdict={'fontsize':50})
@@ -92,13 +98,13 @@ def fitnessWave(file_path):
             tick.label.set_fontsize(40) 
         
         try:
-            os.makedirs(_out, exist_ok=True)
+            os.makedirs(_out + "fitness_wave/", exist_ok=True)
         except OSError as error:
             print(error)
         finally:
-            if os.path.exists(_out + "%s_fitness_wave.jpg" % _num):
-                os.remove(_out + "%s_fitness_wave.jpg" % _num)
-            fig.savefig(_out + "%s_fitness_wave.jpg" % _num)
+            if os.path.exists(_out + "fitness_wave/%s_fitness_wave.jpg" % _num):
+                os.remove(_out + "fitness_wave/%s_fitness_wave.jpg" % _num)
+            fig.savefig(_out + "fitness_wave/%s_fitness_wave.jpg" % _num)
             plt.close(fig)            
 
 def combainedMutWave(file_path):
@@ -117,7 +123,13 @@ def combainedMutWave(file_path):
         
         elif 'normal' in _name:       
             temp = pop.toarray()
-            ax.hist(temp[:,1],  color = "red")
+            _min = int(min(pop[:,1].toarray()))
+            _max = int(max(pop[:,1].toarray()))
+            data = np.zeros((_max - _min + 1, 2))
+            data[:,0] = np.array([x for x in range(int(_min), int(_max)+1, 1)])
+            for i in pop[:,1].toarray():
+                data[int(i) - _min, 1] = data[int(i) - _min, 1] + 1
+            ax.bar(data[:,0], data[:,1], width=1, color='red')
                     
     ax.set_xlabel("Generation", labelpad=50, fontdict={'fontsize':50})
     ax.set_ylabel("Population size", labelpad=50, fontdict={'fontsize':50})
@@ -180,3 +192,6 @@ def popGrowth(file_path):
             os.remove(_out + "population_growth.jpg")
         fig.savefig(_out + "population_growth.jpg")
         plt.close(fig)  
+        
+if __name__ == '__main__':
+    mutationWave(['E:/Simulations/Mutation waves in cancer cells/Normal/third/third_normal_4975.npz'])

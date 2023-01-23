@@ -4,12 +4,16 @@ from PyQt5.QtCore import Qt
 import sys
 import numpy as np
 import scipy as sc
+import pandas as pd
+from pathlib import Path
 import copy
 import re
 
 from threading import Thread
 from multiprocessing import Process, Queue
 
+# from seEvo_evolution_init import seEvoInit
+# import externalPlots as externalPlots
 from seEvo1D.seEvo_evolution_init import seEvoInit
 import seEvo1D.externalPlots as externalPlots
 
@@ -48,10 +52,10 @@ class mainFormat(qtWidget.QWidget):
         self.th_s = []
         self.s_ID = []
         
-        self._th_pg = Thread()
-        self._th_cp = Thread()
-        self._th_mw = Thread()
-        self._th_fw = Thread()
+        self._th_pg = Process()
+        self._th_cp = Process()
+        self._th_mw = Process()
+        self._th_fw = Process()
         self.createMainView()
         self._monitor = True
         self.th_monitor = Thread(target=self.monitor, args=(self.q, self.status))
@@ -118,12 +122,15 @@ class mainFormat(qtWidget.QWidget):
         self.showDialog(disclaimer, 'About')
             
     def fitWaveAction(self):
+        if self._th_fw.is_alive():
+            self.showDialog("plottin already running", 'Info')
+            return
         fname = qtWidget.QFileDialog.getOpenFileNames(None, 'Open file', "Z://","Data File (*.npz)")[0] 
         if len(fname) == 0:
             self.showDialog("No file selected!", "Alert")
             return
         if all(map(lambda x: x.endswith('.npz'), fname)):
-            self._th_fw = (Thread(target=externalPlots.fitnessWave, args=(fname,)))
+            self._th_fw = (Process(target=externalPlots.fitnessWave, args=(fname,)))
             # externalPlots.fitnessWave(fname)
             self._th_fw.start()
             self.status.setText("fitness wave plot ongoing")
@@ -131,12 +138,15 @@ class mainFormat(qtWidget.QWidget):
             self.showDialog("Wrong file/files extension. Use only one kind at time", "Alert")
             
     def mutWaveAction(self):
+        if self._th_mw.is_alive():
+            self.showDialog("plottin already running", 'Info')
+            return
         fname = qtWidget.QFileDialog.getOpenFileNames(None, 'Open file', "Z://","Data File (*.npz)")[0] 
         if len(fname) == 0:
             self.showDialog("No file selected!", "Alert")
             return
         if all(map(lambda x: x.endswith('.npz'), fname)):
-            self._th_mw = (Thread(target=externalPlots.mutationWave, args=(fname,)))
+            self._th_mw = (Process(target=externalPlots.mutationWave, args=(fname,)))
             # externalPlots.mutationWave(fname)
             self._th_mw.start()
             self.status.setText("mutation wave plot ongoing")
@@ -144,12 +154,15 @@ class mainFormat(qtWidget.QWidget):
             self.showDialog("Wrong file/files extension. Use only one kind at time", "Alert")
             
     def popGrowthAction(self):
+        if self._th_pg.is_alive():
+            self.showDialog("plottin already running", 'Info')
+            return
         fname = qtWidget.QFileDialog.getOpenFileNames(None, 'Open file', "Z://","Data File (*.npz)")[0] 
         if len(fname) == 0:
             self.showDialog("No file selected!", "Alert")
             return
         if all(map(lambda x: x.endswith('.npz'), fname)):
-            self._th_pg = (Thread(target=externalPlots.popGrowth, args=(fname,)))
+            self._th_pg = (Process(target=externalPlots.popGrowth, args=(fname,)))
             # externalPlots.popGrowth(fname)
             self._th_pg.start()
             self.status.setText("population growth plot ongoing")
@@ -157,12 +170,15 @@ class mainFormat(qtWidget.QWidget):
             self.showDialog("Wrong file/files extension. Use only one kind at time", "Alert")
             
     def combinedMutWave(self):
+        if self._th_cp.is_alive():
+            self.showDialog("plottin already running", 'Info')
+            return
         fname = qtWidget.QFileDialog.getOpenFileNames(None, 'Open file', "Z://","Data File (*.npz)")[0] 
         if len(fname) == 0:
             self.showDialog("No file selected!", "Alert")
             return
         if all(map(lambda x: x.endswith('.npz'), fname)):
-            self._th_cp = (Thread(target=externalPlots.combainedMutWave, args=(fname,)))
+            self._th_cp = (Process(target=externalPlots.combainedMutWave, args=(fname,)))
             # externalPlots.combainedMutWave(fname)
             self._th_cp.start()
             self.status.setText("combined mutation wave plot ongoing")
@@ -291,9 +307,53 @@ class mainFormat(qtWidget.QWidget):
         layout.addWidget(qtWidget.QLabel("Death intensity exponent, A"), row, 0)
         layout.addWidget(self._mdt_exp, row, 1)
         
+        _save_params = qtWidget.QPushButton(self)
+        _save_params.setText('Save Parameters')
+        _save_params.clicked.connect(self.saveParams)
+        row = row + 1
+        layout.addWidget(_save_params, row, 0, 1, 3)
+        
+        _load_params = qtWidget.QPushButton(self)
+        _load_params.setText('Load Parameters')
+        _load_params.clicked.connect(self.loadParams)
+        row = row + 1
+        layout.addWidget(_load_params, row, 0, 1, 3)
+        
         parametersTab.setLayout(layout)
         return parametersTab
+    
+    def saveParams(self):
+        params, break_type = self.validateParams()
         
+        try:
+            if self._file_name.text() == "":
+                raise Exception()
+            if self._file_path.text() == "":
+                raise Exception()
+        except:
+            self.showDialog("Enter save localization and name", "Alert")
+            return
+            
+        dfp = pd.DataFrame(params)
+        
+        filepath = Path(self._file_path.text() + '/params'  + ".csv")  
+        filepath.parent.mkdir(parents=True, exist_ok=True)  
+        dfp.to_csv(filepath)  
+    
+    def loadParams(self):
+        fname = qtWidget.QFileDialog.getOpenFileName(self, 'Open file', "Z://","CSV files (*.csv)")        
+        df = pd.read_csv(fname[0])
+        df = df.to_numpy()        
+    
+        self._population.setText(str(int(df[0,1])))
+        self._capacity.setText(str(int(df[1,1])))
+        self._steps.setText(str(int(df[2,1])))
+        self._tau.setText(str(df[3,1]))
+        self._skip.setText(str(df[4,1]))
+        self._mut_prob.setText(str(df[5,1]))
+        self._mut_effect.setText(str(df[6,1]))        
+        self._mdt_exp.setText(str(df[7,1]))
+    
     def outputTabUI(self):
         outputTabUI = qtWidget.QWidget()
         layout = qtWidget.QGridLayout()        
@@ -308,11 +368,11 @@ class mainFormat(qtWidget.QWidget):
         row = row + 1
         layout.addWidget(_mut_wave, row, 0)
         
-        _fit_wave = qtWidget.QPushButton(self)
-        _fit_wave.setText('Fitness wave plot')
-        _fit_wave.clicked.connect(self.fitWaveAction)
-        row = row + 1
-        layout.addWidget(_fit_wave, row, 0)
+        # _fit_wave = qtWidget.QPushButton(self)
+        # _fit_wave.setText('Fitness wave plot')
+        # _fit_wave.clicked.connect(self.fitWaveAction)
+        # row = row + 1
+        # layout.addWidget(_fit_wave, row, 0)
         
         _pop_growth = qtWidget.QPushButton(self)
         _pop_growth.setText('Population growth')
@@ -353,6 +413,15 @@ class mainFormat(qtWidget.QWidget):
         
         for i in self.s_ID:
             layout.addRow(qtWidget.QLabel("ID: " + str(i)), qtWidget.QLabel())
+        
+        if self._th_pg.is_alive():
+            layout.addRow(qtWidget.QLabel("population growth plot"), qtWidget.QLabel())
+        if self._th_cp.is_alive():
+            layout.addRow(qtWidget.QLabel("combined plot"), qtWidget.QLabel())
+        if self._th_mw.is_alive():
+            layout.addRow(qtWidget.QLabel("mutation wave"), qtWidget.QLabel())
+        if self._th_fw.is_alive():
+            layout.addRow(qtWidget.QLabel("fitness wave"), qtWidget.QLabel())
         
         threadTabUI.setLayout(layout)
         return threadTabUI
