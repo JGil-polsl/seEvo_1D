@@ -198,10 +198,10 @@ def evolutionDynamics(an_path, norm_path):
     norm = np.array(list(map(readPaths, norm_path)))
     _out_an = an[0,1]
     _out_norm = norm[0,1]
-    ind = max((round(float(max(an[:,3]))/4,-2)), (round(float(max(norm[:,3]))/4,-2)))
-    ix1 = np.where(an[:,3] == str(ind))[0]
-    ix2 = np.where(an[:,3] == str(ind*2))[0]
-    ix3 = np.where(an[:,3] == str(ind*3))[0]
+    ind = int(min(len(an[:,0]), len(norm[:,0]))/4)
+    ix1 = ind
+    ix2 = ind * 2
+    ix3 = ind * 3
     ix = np.array([ix1, ix2, ix3])
     mWave = np.append(an[ix,[0,2,3]], norm[ix,[0,2,3]], axis=0)
     mWave = np.array(list(map(lambda x: [sc.sparse.load_npz(x[0]), x[2], 'analytical' in x[1]], mWave)))

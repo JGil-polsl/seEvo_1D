@@ -30,7 +30,8 @@ def seEvo1Danalytical(iPop, cap, tau_x, A, mut_prob, mut_effect, simTime):
     global mdv
     popSize = sum(iPop[1,:])
     mdt = (popSize/cap)**A
-    tau = tau_x * cap/popSize
+    # tau = tau_x * cap/popSize
+    tau = tau_x
     simTime = simTime + tau
     
     if iPop[1,len(iPop[0,:]) - 1] > 0:

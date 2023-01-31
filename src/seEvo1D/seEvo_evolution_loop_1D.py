@@ -20,8 +20,7 @@ def mutate(iPop, pdm, mut_effect):
     (a,b) = iPop._shape
     rows = copy.deepcopy(iPop[pdm,:]).toarray()
     # rows = copy.deepcopy(iPop[pdm,:])
-    # rows[:, 0] = rows[:, 0]*(1+abs(mut_effect))**(1 - 2*(mut_effect < 0))
-    rows[:, 0] = rows[:, 0]/(1-abs(mut_effect))
+    rows[:, 0] = rows[:, 0]*(1+abs(mut_effect))**(1 - 2*(mut_effect < 0))
     rows[:, 1] = rows[:, 1] + 1
     iPop = sc.sparse.vstack([iPop, rows]).tocsr()
     # iPop = np.append(iPop, rows, axis=0)
@@ -32,7 +31,8 @@ def seEvo1Dnorm(iPop, cap, tau_x, A, mut_prob, mut_effect, simTime):
     # popSize = len(iPop[:,0])
     
     mdt = (popSize/cap)**A
-    tau = tau_x * cap/popSize
+    # tau = tau_x * cap/popSize
+    tau = tau_x
     mdv = iPop[:,0].toarray()[:,0]
     # mdv = iPop[:,0]
     
@@ -49,7 +49,8 @@ def seEvo1Dnorm(iPop, cap, tau_x, A, mut_prob, mut_effect, simTime):
     pdt = pdtx == 0
     pdv = pdvx > 0
     
-    pdm = pdv[pdm]
+    pdm = pdv & pdm
+    pdm = pdm > 0
     pdv = np.logical_xor(pdv, pdm)
     
     nr = np.array(range(popSize))
