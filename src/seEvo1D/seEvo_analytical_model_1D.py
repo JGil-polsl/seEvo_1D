@@ -6,50 +6,45 @@ import copy
 from threading import Thread
 from multiprocessing import Pool
 
-def mdv(mut_num, mut_effect):
-    if mut_effect > 0:
-        return (1+mut_effect)**mut_num
-    else:
-        return 1/((1-mut_effect)**mut_num)
+mdv = [1]
 
 def mf_dif(iPop, mdt, pdm, mut_effect):
+    global mdv
     alfa = 1
-    nPop = np.zeros((iPop._shape[0], iPop._shape[1]))
-    nPop[:,0] = np.array([x for x in range(int(iPop[0,0]),int(iPop[iPop._shape[0]-1,0])+1)])
-    A = - mdt * iPop[:,1].toarray()
-    B = (1 - pdm) * mdv(iPop[:,0].toarray(), mut_effect) * iPop[:,1].toarray() * (iPop[:,1].toarray() >= 1)
-    C = np.zeros((iPop._shape[0], 1))
-    C[1:len(C)] = mdv(iPop[0:iPop._shape[0]-1,0].toarray(), mut_effect) * pdm * iPop[0:iPop._shape[0]-1,1].toarray() * (iPop[0:iPop._shape[0]-1,1].toarray() >= 1)
-    nPop = sc.sparse.csr_matrix(nPop)
-    nPop[:,1] = A + B + C 
-  
-    return nPop
+    # Nfp = (1 - np.exp(-alfa * iPop))
+    Nfp = iPop > 1
+    A = -mdt * iPop
+    A = A + (1 - pdm) * mdv * iPop * Nfp
+    A[1:len(iPop)] = A[1:len(iPop)] + pdm * mdv[0:len(mdv)-1] * iPop[0:len(iPop)-1] * Nfp[0:len(Nfp)-1]
+    
+    return A
     
 def rk4(iPop, tau, mdt, pdm, mut_effect):
-    k1 = sc.sparse.csr_matrix(np.zeros((iPop._shape[0], iPop._shape[1])))
-    k2 = sc.sparse.csr_matrix(np.zeros((iPop._shape[0], iPop._shape[1])))
-    k3 = sc.sparse.csr_matrix(np.zeros((iPop._shape[0], iPop._shape[1])))
-    k4 = sc.sparse.csr_matrix(np.zeros((iPop._shape[0], iPop._shape[1])))
-    k1[:,1] = tau*mf_dif(iPop, mdt, pdm, mut_effect)[:,1]
-    k2[:,1] = tau*mf_dif(iPop+k1/2, mdt, pdm, mut_effect)[:,1]
-    k3[:,1] = tau*mf_dif(iPop+k2/2, mdt, pdm, mut_effect)[:,1]
-    k4[:,1] = tau*mf_dif(iPop+k3, mdt, pdm, mut_effect)[:,1]
-    iPop = iPop+(1/6)*(k1+2*k2+2*k3+k4)
-    return iPop
+    k1 = tau*mf_dif(iPop[1,:], mdt, pdm, mut_effect)
+    k2 = tau*mf_dif(iPop[1,:]+k1/2, mdt, pdm, mut_effect)
+    k3 = tau*mf_dif(iPop[1,:]+k2/2, mdt, pdm, mut_effect)
+    k4 = tau*mf_dif(iPop[1,:]+k3, mdt, pdm, mut_effect)
+    iPop[1,:] = iPop[1,:]+(1/6)*(k1+2*k2+2*k3+k4)
 
 def seEvo1Danalytical(iPop, cap, tau_x, A, mut_prob, mut_effect, simTime):
-    popSize = int(sum(iPop[:,1].toarray())[0])
+    global mdv
+    popSize = sum(iPop[1,:])
     mdt = (popSize/cap)**A
     tau = tau_x * cap/popSize
     simTime = simTime + tau
     
-    if iPop[iPop._shape[0]-1, 1] >= 1:
-        iPop = sc.sparse.vstack([iPop, [iPop[iPop._shape[0]-1,0] + 1, 0]]).tocsr()
-        
-    iPop = rk4(iPop, tau, mdt, mut_prob, mut_effect)
+    if iPop[1,len(iPop[0,:]) - 1] > 0:
+        # mdv = np.append(mdv, math.exp(mut_effect * (mdv[len(mdv)-1] + 1)))
+        c = np.array(range(int(iPop[0, len(iPop[0,:])-1])+1, int(iPop[0, len(iPop[0,:])-1])+501, 1))
+        mdv = np.append(mdv, np.exp(mut_effect * c))
+        a = len(iPop[0,:])
+        iPop = np.array([np.append(iPop[0,:], np.zeros((500))), np.append(iPop[1,:], np.zeros((500)))])
+        iPop[0,a:len(iPop[1,:])] = c
+                
+    rk4(iPop, tau, mdt, mut_prob, mut_effect)
     
-    if iPop[0,1] < 1:
-        iPop = iPop[1:iPop._shape[0]-1,:]
+    if iPop[1,0] < 1:
+        mdv = mdv[1:len(iPop[0,:])]
+        iPop = iPop[:,1:len(iPop[0,:])]
     
-    return iPop, simTime
-    
+    return iPop, simTime    

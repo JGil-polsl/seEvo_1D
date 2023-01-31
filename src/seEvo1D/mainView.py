@@ -12,10 +12,10 @@ import re
 from threading import Thread
 from multiprocessing import Process, Queue
 
-# from seEvo_evolution_init import seEvoInit
-# import externalPlots as externalPlots
-from seEvo1D.seEvo_evolution_init import seEvoInit
-import seEvo1D.externalPlots as externalPlots
+from seEvo_evolution_init import seEvoInit
+import externalPlots as externalPlots
+# from seEvo1D.seEvo_evolution_init import seEvoInit
+# import seEvo1D.externalPlots as externalPlots
 
 disclaimer = '''
     seEvo - slightly effect evolution simulator basing on Gillespie algorithm.
@@ -56,6 +56,7 @@ class mainFormat(qtWidget.QWidget):
         self._th_cp = Process()
         self._th_mw = Process()
         self._th_fw = Process()
+        self._th_ed = Process()
         self.createMainView()
         self._monitor = True
         self.th_monitor = Thread(target=self.monitor, args=(self.q, self.status))
@@ -110,6 +111,11 @@ class mainFormat(qtWidget.QWidget):
                 if not self._th_cp.is_alive():                   
                     self.status.setText("combined plot done")
                     # self._th_fw = None
+            if self._th_ed.is_alive():
+                self._th_ed.join(1)   
+                if not self._th_ed.is_alive():                 
+                    self.status.setText("evolution dynamics done")
+                    # self._th_mw = None
     
     def update(self):
         i = self.tabs.indexOf(self._tabUI)
@@ -184,6 +190,33 @@ class mainFormat(qtWidget.QWidget):
             self.status.setText("combined mutation wave plot ongoing")
         else:
             self.showDialog("Wrong file/files extension. Use only one kind at time", "Alert")
+            
+    def evolutionDynamics(self):
+        if self._th_ed.is_alive():
+            self.showDialog("plottin already running", 'Info')
+            return
+        self.showDialog("First select ANALYTICAL .npz files (whole population)\n Second select NORMAL .npz files (whole population)", "INFO")
+        fname_an = qtWidget.QFileDialog.getOpenFileNames(None, 'Select Analytical Files', "Z://","Data File (*.npz)")[0] 
+        if len(fname_an) == 0:
+            self.showDialog("No analytical file selected", "Alert")
+            return
+        if not all(map(lambda x: 'analytical' in x, fname_an)):
+            self.showDialog("Select only analytical files", "Alert")
+            return
+        fname_norm = qtWidget.QFileDialog.getOpenFileNames(None, 'Select Normal Files', "Z://","Data File (*.npz)")[0] 
+        if len(fname_norm) == 0:
+            self.showDialog("No normal file selected", "Alert")
+            return
+        if not all(map(lambda x: 'normal' in x, fname_norm)):
+            self.showDialog("Select only normal files", "Alert")
+            return
+        if all(map(lambda x: x.endswith('.npz'), fname_an)) and all(map(lambda x: x.endswith('.npz'), fname_norm)):
+            self._th_ed = (Process(target=externalPlots.evolutionDynamics, args=(fname_an, fname_norm)))
+            # externalPlots.evolutionDynamics(fname_an, fname_norm)
+            self._th_ed.start()
+            self.status.setText("evolution dynamics plot ")
+        else:
+            self.showDialog("Wrong file/files extension.", "Alert")
     
     def createMainView(self):
         layout = qtWidget.QGridLayout()
@@ -341,7 +374,10 @@ class mainFormat(qtWidget.QWidget):
         dfp.to_csv(filepath)  
     
     def loadParams(self):
-        fname = qtWidget.QFileDialog.getOpenFileName(self, 'Open file', "Z://","CSV files (*.csv)")        
+        fname = qtWidget.QFileDialog.getOpenFileName(self, 'Open file', "Z://","CSV files (*.csv)") 
+        if fname[0] == '':
+            self.showDialog("No file selected!", "Alert")
+            return
         df = pd.read_csv(fname[0])
         df = df.to_numpy()        
     
@@ -386,6 +422,12 @@ class mainFormat(qtWidget.QWidget):
         row = row + 1
         layout.addWidget(_combined, row, 0)
         
+        _dyn = qtWidget.QPushButton(self)
+        _dyn.setText('Evolution dynamics')
+        _dyn.clicked.connect(self.evolutionDynamics)
+        row = row + 1
+        layout.addWidget(_dyn, row, 0)
+        
         _about = qtWidget.QPushButton(self)
         _about.setText('Short instruction')
         _about.clicked.connect(self.showAboutOutput)
@@ -422,6 +464,8 @@ class mainFormat(qtWidget.QWidget):
             layout.addRow(qtWidget.QLabel("mutation wave"), qtWidget.QLabel())
         if self._th_fw.is_alive():
             layout.addRow(qtWidget.QLabel("fitness wave"), qtWidget.QLabel())
+        if self._th_ed.is_alive():
+            layout.addRow(qtWidget.QLabel("evolution dynamics"), qtWidget.QLabel())
         
         threadTabUI.setLayout(layout)
         return threadTabUI
@@ -442,14 +486,14 @@ class mainFormat(qtWidget.QWidget):
         
         iPop = []
         if self._analytical.isChecked():
-            iPop = np.array([0,params[0]])
-            iPop = sc.sparse.csr_matrix(iPop)
+            iPop = np.array([[0],[float(params[0])]])
             select = 1
             name = 'analytical'
         else:
             iPop = np.ones(params[0])
             iMuts = np.zeros(params[0])
             iPop = sc.sparse.csr_matrix(np.array([iPop, iMuts]).T)
+            # iPop = np.array([iPop, iMuts]).T
             select = 0
             name = 'normal'
           

@@ -2,15 +2,16 @@ import numpy as np
 import time
 import os
 import math
+import copy
 import scipy as sc
 import pandas as pd
 from pathlib import Path  
 from threading import Thread
 
-# from seEvo_evolution_loop_1D import seEvo1Dnorm
-# from seEvo_analytical_model_1D import seEvo1Danalytical
-from seEvo1D.seEvo_evolution_loop_1D import seEvo1Dnorm
-from seEvo1D.seEvo_analytical_model_1D import seEvo1Danalytical
+from seEvo_evolution_loop_1D import seEvo1Dnorm
+from seEvo_analytical_model_1D import seEvo1Danalytical
+# from seEvo1D.seEvo_evolution_loop_1D import seEvo1Dnorm
+# from seEvo1D.seEvo_analytical_model_1D import seEvo1Danalytical
 
 end = False
 
@@ -42,7 +43,7 @@ def plotter(iPop, file_name, file_localization, iter_outer, plots, select):
         if select == 0:
             saveToFile(iPop, file_localization, file_name + '_normal', iter_outer)
         elif select == 1:
-            saveToFile(iPop, file_localization, file_name + '_analytical', iter_outer)
+            saveToFile(sc.sparse.csr_matrix(iPop.T), file_localization, file_name + '_analytical', iter_outer)
         
     
 def seEvoInit(iPop, 
@@ -74,18 +75,14 @@ def seEvoInit(iPop,
             if not q.empty():
                 commands(q, ID, iPop, file_localization, file_name, iter_outer, skip, iter_inner, cycle, tau, select)
 
-        if end:
-            q.put(['exit', str(ID) + ', analytical' * (select == 1) + ', normal' * (select == 0)])
-            break
-
         if iter_outer <= simTime:
             begin = 0
             t = time.time() - t  
             q.put(['0', str(ID), str(iter_outer)])
             
             if iter_inner * skip <= simTime:
+                plotter(copy.deepcopy(iPop), file_name, file_localization, copy.copy(iter_inner * skip), plots, select)                
                 iter_inner = iter_inner + 1
-                plotter(iPop, file_name, file_localization, iter_outer, plots, select)
  
             clear = True
             
@@ -107,14 +104,26 @@ def seEvoInit(iPop,
                 tx = time.time()            
             t = time.time()
             
-            iter_outer = iter_outer + 1  
+            iter_outer = int(simTime) + 1
         
-        if (iter_outer % steps == 0 or iPop._shape[0] >= 10**6) and break_type == 0:
-            print('all steps')
-            end = True
-        elif (iPop._shape[0] >= steps or iPop._shape[0] >= 10**6) and break_type == 1 and select != 2:
-            print('all cells')
-            end = True
+        if end:
+            q.put(['exit', str(ID) + ', analytical' * (select == 1) + ', normal' * (select == 0)])
+            break
+        
+        if not select:
+            if (int(simTime) - steps >= 0 or iPop._shape[1] >= 10**6) and break_type == 0:
+                print('all steps')
+                end = True
+            elif (iPop._shape[1] >= steps or iPop._shape[1] >= 10**6) and break_type == 1 and select != 2:
+                print('all cells')
+                end = True
+        else:
+            if (int(simTime) - steps >= 0 or sum(iPop[1,:]) >= 10**6) and break_type == 0:
+                print('all steps')
+                end = True
+            elif (sum(iPop[1,:]) >= steps or sum(iPop[1,:]) >= 10**6) and break_type == 1 and select != 2:
+                print('all cells')
+                end = True
         
         if select == 0:            
             iPop, simTime = seEvo1Dnorm(iPop, cap, tau, A, mut_prob, mut_effect, simTime)
