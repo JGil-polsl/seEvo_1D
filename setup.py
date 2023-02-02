@@ -22,7 +22,7 @@ setup(
     # specification here:
     # https://packaging.python.org/specifications/core-metadata/#name
     name="seEvo1D", 
-    version="1.2.1",
+    version="1.2.5",
     description="Software for simulating slightly effect mutations impact on population evolution in tau leap version.",
     url="https://github.com/JGil-polsl/seEvo_1D",
     author="Jaroslaw Gil",  

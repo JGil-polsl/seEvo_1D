@@ -36,10 +36,11 @@ disclaimer = '''
     '''
 
 output_about = '''
-    mutation wave plot - select one or multiple files to plot mutation wave (mutation number vs cells number)
-    fitness wave plot - select one or multiple files to plot fitness wave (not active for analytical model)
+    single mutation wave plot - select one or multiple files to plot mutation wave (mutation number vs cells number)
     population growth plot - select multiple files to plot how population grow between generations
-    combined mutation wave plot - select two or more files to combine mutation wave plots on one plot (able for normal and analytical wave plot)
+    multiple mutation wave plot - select two or more files to combine mutation wave plots on one plot (able for normal and analytical wave plot)
+    evolution dynamics - comparision of analytical and normal model data - select whole population for both versions (generations should be corresponding).
+        plot will contain three mutation waves in 1/4, 2/4, 3/4 of generation size, population groth and mutation changes throught evolution
 '''
 
 class mainFormat(qtWidget.QWidget):
@@ -80,6 +81,7 @@ class mainFormat(qtWidget.QWidget):
                 if data[0] == '0':
                     status.setText("ID: " + data[1] + ", generation: " + data[2])
                 elif data[0] == 'exit':
+                    status.setText("stopped: " + data[1])
                     for i in self.s_ID:
                         if i == data[1]:
                             idx = self.s_ID.index(i)
@@ -264,7 +266,7 @@ class mainFormat(qtWidget.QWidget):
         layout = qtWidget.QGridLayout()
 
         self._NONE = qtWidget.QRadioButton("Checked: Normal simulation")       
-        self._analytical = qtWidget.QRadioButton("Checked: Analytical model (omit VAF)")               
+        self._analytical = qtWidget.QRadioButton("Checked: Analytical model")               
         self._NONE.click()
         
         self._file_name = qtWidget.QLineEdit()
@@ -399,7 +401,7 @@ class mainFormat(qtWidget.QWidget):
         layout.addWidget(self._sx, row, 0)
 
         _mut_wave = qtWidget.QPushButton(self)
-        _mut_wave.setText('Mutation wave plot')
+        _mut_wave.setText('Mutation wave plot - single mutation wave on figure')
         _mut_wave.clicked.connect(self.mutWaveAction)
         row = row + 1
         layout.addWidget(_mut_wave, row, 0)
@@ -417,7 +419,7 @@ class mainFormat(qtWidget.QWidget):
         layout.addWidget(_pop_growth, row, 0)
         
         _combined = qtWidget.QPushButton(self)
-        _combined.setText('Combined mutation wave plot')
+        _combined.setText('Mutation wave plot - multiple mutation waves on figure')
         _combined.clicked.connect(self.combinedMutWave)
         row = row + 1
         layout.addWidget(_combined, row, 0)

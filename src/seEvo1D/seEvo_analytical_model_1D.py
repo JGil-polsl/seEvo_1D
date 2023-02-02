@@ -30,14 +30,15 @@ def seEvo1Danalytical(iPop, cap, tau_x, A, mut_prob, mut_effect, simTime):
     global mdv
     popSize = sum(iPop[1,:])
     mdt = (popSize/cap)**A
-    # tau = tau_x * cap/popSize
-    tau = tau_x
+    tau = tau_x * cap/popSize
+    # tau = tau_x
     simTime = simTime + tau
     
     if iPop[1,len(iPop[0,:]) - 1] > 0:
         # mdv = np.append(mdv, math.exp(mut_effect * (mdv[len(mdv)-1] + 1)))
         c = np.array(range(int(iPop[0, len(iPop[0,:])-1])+1, int(iPop[0, len(iPop[0,:])-1])+501, 1))
-        mdv = np.append(mdv, np.exp(mut_effect * c))
+        # mdv = np.append(mdv, np.exp(mut_effect * c))
+        mdv = np.append(mdv, ((1+abs(mut_effect))**c)**(1-2*(mut_effect < 0)))
         a = len(iPop[0,:])
         iPop = np.array([np.append(iPop[0,:], np.zeros((500))), np.append(iPop[1,:], np.zeros((500)))])
         iPop[0,a:len(iPop[1,:])] = c

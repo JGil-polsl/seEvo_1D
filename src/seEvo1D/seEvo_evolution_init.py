@@ -78,7 +78,10 @@ def seEvoInit(iPop,
         if iter_outer <= simTime:
             begin = 0
             t = time.time() - t  
-            q.put(['0', str(ID), str(iter_outer)])
+            if select == 0:
+                q.put(['0', str(ID), str(iter_outer)])
+            elif select == 1 and iter_outer % 10 == 0:
+                q.put(['0', str(ID), str(iter_outer)])
             
             if iter_inner * skip <= simTime:
                 plotter(copy.deepcopy(iPop), file_name, file_localization, copy.copy(iter_inner * skip), plots, select)                

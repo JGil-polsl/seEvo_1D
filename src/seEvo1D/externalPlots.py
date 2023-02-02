@@ -53,7 +53,7 @@ def mutationWave(file_path):
         
         ax.set_xlabel("Mutation number", labelpad=50, fontdict={'fontsize':50})
         ax.set_ylabel("Cells", labelpad=50, fontdict={'fontsize':50})
-        ax.set_title("Mutation Wave, Population: %i" % (popSize), pad=50, fontdict={'fontsize':70})
+        ax.set_title("Mutation Wave, N(t), t=%s, Population: %i" % (_num, popSize), pad=50, fontdict={'fontsize':70})
         
         for tick in ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(40) 
@@ -133,7 +133,7 @@ def combainedMutWave(file_path):
                     
     ax.set_xlabel("Mutation number", labelpad=50, fontdict={'fontsize':50})
     ax.set_ylabel("Population size", labelpad=50, fontdict={'fontsize':50})
-    ax.set_title("Combined mutation wave", pad=50, fontdict={'fontsize':70})
+    ax.set_title("Mutation waves", pad=50, fontdict={'fontsize':70})
     
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(40) 
@@ -174,7 +174,7 @@ def popGrowth(file_path):
     
     ax.set_xlabel("Generation", labelpad=50, fontdict={'fontsize':50})
     ax.set_ylabel("Population size", labelpad=50, fontdict={'fontsize':50})
-    ax.set_title("Population growth", pad=50, fontdict={'fontsize':70})
+    ax.set_title("Population growth, N(t)", pad=50, fontdict={'fontsize':70})
     
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(40) 
@@ -202,7 +202,7 @@ def evolutionDynamics(an_path, norm_path):
     ix1 = ind
     ix2 = ind * 2
     ix3 = ind * 3
-    ix = np.array([ix1, ix2, ix3])
+    ix = np.array([[ix1], [ix2], [ix3]])
     mWave = np.append(an[ix,[0,2,3]], norm[ix,[0,2,3]], axis=0)
     mWave = np.array(list(map(lambda x: [sc.sparse.load_npz(x[0]), x[2], 'analytical' in x[1]], mWave)))
     
@@ -269,13 +269,13 @@ def evolutionDynamics(an_path, norm_path):
             for tick in rx.yaxis.get_major_ticks():
                 tick.label.set_fontsize(20) 
     
-    ax[0,0].set_title("mutation wave, t=%s" % an[ix1,1], fontdict={'fontsize':50})
-    ax[1,0].set_title("mutation wave, t=%s" % an[ix2,1], fontdict={'fontsize':50})
-    ax[2,0].set_title("mutation wave, t=%s" % an[ix3,1], fontdict={'fontsize':50})
+    ax[0,0].set_title("mutation wave, N(t), t=%s" % an[ix1,1], fontdict={'fontsize':50})
+    ax[1,0].set_title("mutation wave, N(t), t=%s" % an[ix2,1], fontdict={'fontsize':50})
+    ax[2,0].set_title("mutation wave, N(t), t=%s" % an[ix3,1], fontdict={'fontsize':50})
     ax[2,0].set_xlabel("mutation number", fontdict={'fontsize':30})
-    ax[0,1].set_title("mean number of mutations", fontdict={'fontsize':50})
-    ax[1,1].set_title("variance number of mutations", fontdict={'fontsize':50})
-    ax[2,1].set_title("population size", fontdict={'fontsize':50})
+    ax[0,1].set_title("mean number of mutations, $\chi(t)$", fontdict={'fontsize':50})
+    ax[1,1].set_title("variance number of mutations, $\sigma^{2}(t)$", fontdict={'fontsize':50})
+    ax[2,1].set_title("population size, N(t)", fontdict={'fontsize':50})
     
     try:
         os.makedirs(_out_an, exist_ok=True) 
